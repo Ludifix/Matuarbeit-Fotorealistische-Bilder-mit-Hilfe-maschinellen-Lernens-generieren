@@ -180,13 +180,6 @@ diskriminator = Diskriminator()
 generator_optimizer = tf.keras.optimizers.Adam(learning_rate=GENERATOR_LERNRATE, beta_1=0.5)
 diskriminator_optimizer = tf.keras.optimizers.Adam(learning_rate=DISKRIMINATOR_LERNRATE, beta_1=0.5)
 
-checkpoint_dir = './training_checkpoints'
-checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
-checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
-								 discriminator_optimizer=diskriminator_optimizer,
-								 generator=generator,
-								 discriminator=diskriminator)
-
 # Summary Writer
 log_dir = 'logs/' + "Generative Adversarial Network"
 file_writer = tf.summary.create_file_writer(log_dir)
@@ -241,10 +234,11 @@ def training(datensatz, epochen, batch_grösse, trainings_schritte_pro_epoche):
 			gen_fehler_durchschnitt(gen_fehler)     # Speichert die Fehler des Generators,um sie auszugeben.
 
 		# Ausgeben der momentanen Epoche und der Fehler nach jeder Epoche
-		print(template.format(epoche, epochen, 
-							  gen_fehler_durchschnitt.result(),
-							  disk_fehler_durchschnitt.result()
-							  ))
+		print(template.format(
+			epoche, epochen,
+			gen_fehler_durchschnitt.result(),
+			disk_fehler_durchschnitt.result()
+		))
 		
 		with file_writer.as_default():
 			tf.summary.scalar('generator_fehler', gen_fehler_durchschnitt.result(), step=epoche)
@@ -254,12 +248,9 @@ def training(datensatz, epochen, batch_grösse, trainings_schritte_pro_epoche):
 			fake_bilder = (fake_bilder + 1) / 2
 			fake_bilder = np.clip(fake_bilder, 0, 1)
 			tf.summary.image("Generierte Bilder", data=fake_bilder, step=epoche)
-
 		
 		gen_fehler_durchschnitt.reset_states()
 		disk_fehler_durchschnitt.reset_states()
-
-		checkpoint.save(file_prefix=checkpoint_prefix)
 	
 	return generator, diskriminator
 
